@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 
 def create_smoothness_csv(experiment_config):
-    all_matrices = []
+    all_matrices = {}
     layers_count = len(experiment_config['Layers'])
     folds_count = experiment_config['Folds count']
 
@@ -37,26 +38,53 @@ def create_smoothness_csv(experiment_config):
             df.columns = [layer_name for layer_name in experiment_config['Layers']
                           if layer_name not in experiment_config['Layers to drop']]
         df.to_csv(experiment_name + '.csv')
-        all_matrices.append(all_data)
+        all_matrices[experiment_name] = all_data
 
     return all_matrices
 
 
+def create_graphs(experiments_data, experiment_config):
+    titles = [layer_name for layer_name in experiment_config['Layers']
+              if layer_name not in experiment_config['Layers to drop']]
+    index = np.arange(len(titles) + 1)
+    plots = []
+    a = 0
+    for experiment_name, experiment_data in experiments_data.items():
+        if 'original' not in experiment_name:
+            mean_smoothness = [0] + np.mean(experiment_data, axis=0).tolist()
+            std_smoothness = [0] + np.std(experiment_data, axis=0).tolist()
+            new_plot = plt.bar(index + a, mean_smoothness, 0.4, yerr=std_smoothness)
+            plots.append(new_plot)
+            a += 0.4
+        else:
+            data = [experiment_data.tolist()[0]] + len(titles) * [0]
+            new_plot = plt.bar(index, data, 0.3)
+            plots.append(new_plot)
+
+
+    plt.ylabel('Mean Besov smoothness')
+    plt.title('CIFAR10 Smoothness')
+    plt.xticks(index, ['Original Dataset'] + titles)
+    plt.legend([p[0] for p in plots], experiment_config['Name and folder'].keys())
+    plt.show()
+
+
 def main():
-    experiment_config = {
+    cifar10_experiment_config = {
         'Name and folder': {
-            'MNIST_5_epochs': os.path.join('..', 'Smoothness_results', 'MNIST_5_epochs'),
-            'MNIST_10_epochs': os.path.join('..', 'Smoothness_results', 'MNIST_10_epochs'),
-            #'original_MNIST': os.path.join('..', 'Smoothness_results', 'original_MNIST')
+            'CIFAR10_10_epochs': os.path.join('..', 'Smoothness_results', 'CIFAR10_10_epochs'),
+            'CIFAR10_20_epochs': os.path.join('..', 'Smoothness_results', 'CIFAR10_20_epochs'),
+            'original_CIFAR10': os.path.join('..', 'Smoothness_results', 'original_cifar10')
         },
         'Folds count': 5,
-        'Layers': ['1st conv', '1st_max_pool', '2nd conv', '2nd_max_pool', 'flatten', '1st_fully_connected (no dropout)',
-                   'dropout', '2nd_fully_connected-logits'],
-        'Layers to drop': ['flatten', 'dropout']
+        'Layers': ['1st conv', '2nd conv', '1st_max_pool', '1st dropout', '3rd conv', '4th conv', '2nd_max_pool',
+                   '2nd dropout', 'flatten', '1st fully connected', '3rd dropout', '2nd fully connected-\nlogits'],
+        'Layers to drop': ['1st dropout', '2nd dropout', '3rd dropout', 'flatten']
     }
 
-    all_matrices = create_smoothness_csv(experiment_config)
-    pass
+    experiment_config = cifar10_experiment_config
+    all_data = create_smoothness_csv(experiment_config)
+    create_graphs(all_data, experiment_config)
 
 
 if __name__ == '__main__':
