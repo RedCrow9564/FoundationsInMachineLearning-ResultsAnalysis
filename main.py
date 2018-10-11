@@ -22,7 +22,7 @@ def create_smoothness_csv(experiment_config):
                         smoothness_file_path = os.path.join(results_path, str(fold_index), 'alphaMterm.txt')
                     else:
                         smoothness_file_path = os.path.join(results_path, 'layer_{0}'.format(layer_index),
-                                                           str(fold_index), 'alphaMterm.txt')
+                                                            str(fold_index), 'alphaMterm.txt')
                     with open(smoothness_file_path) as smoothness_file:
                         result = float(smoothness_file.readlines()[0].rstrip('\n'))
                         layer_results.append(result)
@@ -61,10 +61,10 @@ def create_graphs(experiments_data, experiment_config):
             new_plot = plt.bar(index, data, 0.3)
             plots.append(new_plot)
 
-
     plt.ylabel('Mean Besov smoothness')
-    plt.title('CIFAR10 Smoothness')
+    plt.title('CIFAR10 CNN Model Layers Smoothness')
     plt.xticks(index, ['Original Dataset'] + titles)
+    #plt.ylim(0, 0.6)
     plt.legend([p[0] for p in plots], experiment_config['Name and folder'].keys())
     plt.show()
 
@@ -77,9 +77,32 @@ def main():
             'original_CIFAR10': os.path.join('..', 'Smoothness_results', 'original_cifar10')
         },
         'Folds count': 5,
-        'Layers': ['1st conv', '2nd conv', '1st_max_pool', '1st dropout', '3rd conv', '4th conv', '2nd_max_pool',
-                   '2nd dropout', 'flatten', '1st fully connected', '3rd dropout', '2nd fully connected-\nlogits'],
-        'Layers to drop': ['1st dropout', '2nd dropout', '3rd dropout', 'flatten']
+        'Layers': ['1st conv', '2nd conv', '1st_max_pool', 'dropout', '3rd conv', '4th conv', '2nd_max_pool',
+                   'dropout', 'flatten', '1st dense', 'dropout', '2nd dense-\nlogits'],
+        'Layers to drop': ['flatten']
+    }
+
+    mnist_experiment_config = {
+        'Name and folder': {
+            'mnist_5_epochs': os.path.join('..', 'Smoothness_results', 'mnist_5_epochs'),
+            'mnist_10_epochs': os.path.join('..', 'Smoothness_results', 'mnist_10_epochs'),
+            'original_mnist': os.path.join('..', 'Smoothness_results', 'original_mnist')
+        },
+        'Folds count': 5,
+        'Layers': ['1st conv', '1st max pool', '2nd conv', '2nd_max_pool', 'flatten', '1st fully connected',
+                   'Dropout', '2nd fully connected-\nlogits'],
+        'Layers to drop': ['flatten']
+    }
+
+    modified_mnist_config = {
+        'Name and folder': {
+            'modified_mnist_net': os.path.join('..', 'Smoothness_results', 'modified_mnist_net'),
+            'original_mnist': os.path.join('..', 'Smoothness_results', 'original_mnist')
+        },
+        'Folds count': 5,
+        'Layers': ['1st conv', '1st max pool', '2nd conv', '2nd_max_pool', 'flatten', '1st fully connected',
+                   'Dropout', '2nd fully connected-\nlogits'],
+        'Layers to drop': ['flatten']
     }
 
     experiment_config = cifar10_experiment_config
